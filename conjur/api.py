@@ -134,6 +134,36 @@ class Api():
         return invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE, params,
                                self.api_key, ssl_verify=self._ssl_verify).text
 
+    def search_resources(self, kind=None, search=None, inspect=True):
+        """
+        This method is used to fetch all available resources that meet
+        the search criteria. Results are returned as an array of identifiers
+        or array of resource dicts.
+        """
+        params = {
+            'account': self._account
+        }
+        params.update(self._default_params)
+
+        query = {}
+        if kind is not None:
+            query['kind'] = kind
+        if search is not None:
+            query['search'] = search
+
+        json_response = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                                        params,
+                                        query=query,
+                                        api_token=self.api_token,
+                                        ssl_verify=self._ssl_verify).content
+
+        resources = json.loads(json_response.decode('utf-8'))
+        if inspect:
+            return resources
+
+        resource_list = map(lambda resource: resource['id'], resources)
+        return list(resource_list)
+
     def list_resources(self):
         """
         This method is used to fetch all available resources for the current

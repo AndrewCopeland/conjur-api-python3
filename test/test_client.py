@@ -342,3 +342,43 @@ class ClientTest(unittest.TestCase):
         Client().list()
 
         mock_api_instance.return_value.list_resources.assert_called_once_with()
+
+    @patch('conjur.client.ApiConfig', return_value=MockApiConfig())
+    @patch('conjur.client.Api')
+    def test_client_passes_through_resource_search_method(self, mock_api_instance,
+            mock_api_config):
+        Client().search()
+
+        mock_api_instance.return_value.search_resources.assert_called_once_with(None, None, False)
+
+    @patch('conjur.client.ApiConfig', return_value=MockApiConfig())
+    @patch('conjur.client.Api')
+    def test_client_passes_through_resource_search_with_kind_method(self, mock_api_instance,
+            mock_api_config):
+        Client().search(kind="variable")
+        
+        mock_api_instance.return_value.search_resources.assert_called_once_with("variable", None, False)
+
+    @patch('conjur.client.ApiConfig', return_value=MockApiConfig())
+    @patch('conjur.client.Api')
+    def test_client_passes_through_resource_search_with_search_method(self, mock_api_instance,
+            mock_api_config):
+        Client().search(search="search_string")
+        
+        mock_api_instance.return_value.search_resources.assert_called_once_with(None, "search_string", False)
+    
+    @patch('conjur.client.ApiConfig', return_value=MockApiConfig())
+    @patch('conjur.client.Api')
+    def test_client_passes_through_resource_search_with_inspect_method(self, mock_api_instance,
+            mock_api_config):
+        Client().search(inspect=True)
+        
+        mock_api_instance.return_value.search_resources.assert_called_once_with(None, None, True)
+    
+    @patch('conjur.client.ApiConfig', return_value=MockApiConfig())
+    @patch('conjur.client.Api')
+    def test_client_passes_through_resource_search_with_all_method(self, mock_api_instance,
+            mock_api_config):
+        Client().search(kind="variable", search="search_string", inspect=True)
+        
+        mock_api_instance.return_value.search_resources.assert_called_once_with("variable", "search_string", True)

@@ -117,6 +117,12 @@ class Client():
         """
         return self._api.list_resources()
 
+    def search(self, kind=None, search=None, inspect=False):
+        """
+        Search all available resources
+        """
+        return self._api.search_resources(kind, search, inspect)
+
     def get(self, variable_id):
         """
         Gets a variable value based on its ID

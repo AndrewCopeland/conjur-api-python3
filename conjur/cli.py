@@ -34,7 +34,22 @@ class Cli():
         resource_subparsers = parser.add_subparsers(dest='resource')
 
         resource_subparsers.add_parser('list',
-            help='Lists all available resources beloging to this account')
+            help='Lists all available resources belonging to this account')
+
+        search_resourse_parser = resource_subparsers.add_parser('search',
+            help='Search all available resources belonging to this account. \
+            For more info "search --help"')
+        search_resourse_parser.add_argument('-k', '--kind',
+            help="Search for a specific kind of resource. e.g. host, variable, group & policy",
+            default=None)
+        search_resourse_parser.add_argument('-s', '--search',
+            help="Search for string within a resource name or annotations. \
+            Values can be seperated by commas",
+            default=None)
+        search_resourse_parser.add_argument('-i', '--inspect',
+            help="Return a full json object repersenting a resource",
+            action='store_true',
+            default=False)
 
         variable_parser = resource_subparsers.add_parser('variable',
             help='Perform variable-related actions . See "variable -help" for more options')
@@ -141,6 +156,9 @@ class Cli():
         if resource == 'list':
             result = client.list()
             print(json.dumps(result, indent=4))
+        elif resource == 'search':
+            result = client.search(args.kind, args.search, args.inspect)
+            print(json.dumps(result, indent=4))
         elif resource == 'variable':
             variable_id = args.variable_id
             if args.action == 'get':
@@ -173,7 +191,7 @@ class Cli():
             parser.print_help()
             sys.exit(0)
 
-        if args.resource not in ['list']:
+        if args.resource not in ['list', 'search']:
             if 'action' not in args or not args.action:
                 parser.print_help()
                 sys.exit(0)

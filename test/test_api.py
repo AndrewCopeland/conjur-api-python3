@@ -62,13 +62,19 @@ class ApiTest(unittest.TestCase):
             params[name] = value
 
         extra_args = {}
-        for extra_arg_name in ['api_token', 'auth', 'query']:
+        for extra_arg_name in ['api_token', 'auth']:
             if locals()[extra_arg_name]:
                 extra_args[extra_arg_name] = locals()[extra_arg_name]
-
-        http_client.assert_called_once_with(method, endpoint, params, *args,
-                                            **extra_args,
-                                            ssl_verify=ssl_verify)
+        
+        if query is not None:
+                http_client.assert_called_once_with(method, endpoint, params, *args,
+                    **extra_args,
+                    query=query,
+                    ssl_verify=ssl_verify) 
+        else:
+            http_client.assert_called_once_with(method, endpoint, params, *args,
+                    **extra_args,
+                    ssl_verify=ssl_verify)
 
     def test_new_client_throws_error_when_no_url(self):
         with self.assertRaises(Exception):
@@ -488,4 +494,66 @@ class ApiTest(unittest.TestCase):
         api.list_resources()
 
         self.verify_http_call(mock_http_client, HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                              ssl_verify=True)
+
+    @patch('conjur.api.invoke_endpoint', \
+           return_value=MockClientResponse(content=json.dumps(MOCK_RESOURCE_LIST)))
+    def test_search_resources_invokes_http_client_correctly(self, mock_http_client):
+        api = Api(url='http://localhost', login_id='mylogin', api_key='apikey')
+        def mock_auth():
+            return 'apitoken'
+        api.authenticate = mock_auth
+
+        api.search_resources()
+
+        self.verify_http_call(mock_http_client, HttpVerb.GET, ConjurEndpoint.RESOURCES, query={},
+                              ssl_verify=True)
+
+    @patch('conjur.api.invoke_endpoint', \
+           return_value=MockClientResponse(content=json.dumps(MOCK_RESOURCE_LIST)))
+    def test_search_kind_resources_invokes_http_client_correctly(self, mock_http_client):
+        api = Api(url='http://localhost', login_id='mylogin', api_key='apikey')
+        def mock_auth():
+            return 'apitoken'
+        api.authenticate = mock_auth
+
+        api.search_resources(kind="variable")
+
+        self.verify_http_call(mock_http_client, HttpVerb.GET, ConjurEndpoint.RESOURCES, 
+                              query={
+                                  "kind": "variable"
+                              },
+                              ssl_verify=True)
+
+    @patch('conjur.api.invoke_endpoint', \
+           return_value=MockClientResponse(content=json.dumps(MOCK_RESOURCE_LIST)))
+    def test_search_string_resources_invokes_http_client_correctly(self, mock_http_client):
+        api = Api(url='http://localhost', login_id='mylogin', api_key='apikey')
+        def mock_auth():
+            return 'apitoken'
+        api.authenticate = mock_auth
+
+        api.search_resources(search="search_string")
+
+        self.verify_http_call(mock_http_client, HttpVerb.GET, ConjurEndpoint.RESOURCES, 
+                              query={
+                                  "search": "search_string"
+                              },
+                              ssl_verify=True)
+
+    @patch('conjur.api.invoke_endpoint', \
+           return_value=MockClientResponse(content=json.dumps(MOCK_RESOURCE_LIST)))
+    def test_search_both_resources_invokes_http_client_correctly(self, mock_http_client):
+        api = Api(url='http://localhost', login_id='mylogin', api_key='apikey')
+        def mock_auth():
+            return 'apitoken'
+        api.authenticate = mock_auth
+
+        api.search_resources(kind="variable", search="search_string")
+
+        self.verify_http_call(mock_http_client, HttpVerb.GET, ConjurEndpoint.RESOURCES, 
+                              query={
+                                  "kind": "variable", 
+                                  "search": "search_string"
+                              },
                               ssl_verify=True)

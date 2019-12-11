@@ -171,3 +171,23 @@ class CliTest(unittest.TestCase):
     @cli_test(["list"], list_output=RESOURCE_LIST)
     def test_cli_resource_listing_outputs_formatted_json(self, cli_invocation, output, client):
         self.assertEquals('[\n    "some_id1",\n    "some_id2"\n]\n', output)
+
+    @cli_test(["search"], list_output=RESOURCE_LIST)
+    def test_cli_invokes_resource_search_correctly(self, cli_invocation, output, client):
+        client.search.assert_called_once_with(None, None, False)
+    
+    @cli_test(["search", "-k", "variable"], list_output=RESOURCE_LIST)
+    def test_cli_invokes_resource_search_for_kind_correctly(self, cli_invocation, output, client):
+        client.search.assert_called_once_with("variable", None, False)
+
+    @cli_test(["search", "-s", "search_string"], list_output=RESOURCE_LIST)
+    def test_cli_invokes_resource_search_for_search_correctly(self, cli_invocation, output, client):
+        client.search.assert_called_once_with(None, "search_string", False)
+
+    @cli_test(["search", "-i"], list_output=RESOURCE_LIST)
+    def test_cli_invokes_resource_search_with_inspect_correctly(self, cli_invocation, output, client):
+        client.search.assert_called_once_with(None, None, True)
+
+    @cli_test(["search", "-k", "variable", "-s", "search_string", "-i"], list_output=RESOURCE_LIST)
+    def test_cli_invokes_resource_search_with_all_correctly(self, cli_invocation, output, client):
+        client.search.assert_called_once_with("variable", "search_string", True)

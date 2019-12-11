@@ -216,6 +216,71 @@ class CliIntegrationTest(unittest.TestCase): # pragma: no cover
                           '[\n    "dev:policy:root",\n    "dev:variable:one/password"\n]\n')
 
     @integration_test
+    def test_https_can_search_resources(self):
+        self.setup_cli_params({
+            **self.HTTPS_ENV_VARS,
+            **self.HTTPS_CA_BUNDLE_ENV_VAR
+        })
+
+        output = invoke_cli(self, self.cli_auth_params, ['search'])
+
+        self.assertEquals(output,
+                          '[\n    "dev:policy:root",\n    "dev:variable:one/password"\n]\n')
+
+    @integration_test
+    def test_https_can_search_resources_with_kind(self):
+        self.setup_cli_params({
+            **self.HTTPS_ENV_VARS,
+            **self.HTTPS_CA_BUNDLE_ENV_VAR
+        })
+
+        output = invoke_cli(self, self.cli_auth_params, ['search', '--kind', 'variable'])
+
+        self.assertEquals(output,
+                          '[\n    "dev:variable:one/password"\n]\n')
+
+    @integration_test
+    def test_https_can_search_resources_with_search(self):
+        self.setup_cli_params({
+            **self.HTTPS_ENV_VARS,
+            **self.HTTPS_CA_BUNDLE_ENV_VAR
+        })
+
+        output = invoke_cli(self, self.cli_auth_params, ['search', '--search', 'root'])
+
+        self.assertEquals(output,
+                          '[\n    "dev:policy:root"\n]\n')
+
+
+    @integration_test
+    def test_https_can_search_resources_with_search_and_variable(self):
+        self.setup_cli_params({
+            **self.HTTPS_ENV_VARS,
+            **self.HTTPS_CA_BUNDLE_ENV_VAR
+        })
+
+        output = invoke_cli(self, self.cli_auth_params, ['search', '--kind', 'variable', '--search', 'root'])
+
+        self.assertEquals(output,
+                          '[]\n')
+
+    @integration_test
+    def test_https_can_search_resources_with_search_inspect(self):
+        self.setup_cli_params({
+            **self.HTTPS_ENV_VARS,
+            **self.HTTPS_CA_BUNDLE_ENV_VAR
+        })
+
+        output = invoke_cli(self, self.cli_auth_params, ['search', '--inspect'])
+        resource_keys = ['created_at', 'id', 'owner', 'permissions', 'annotations' ]
+
+        data = json.loads(output)
+
+        for resource in data:
+            for key in resource_keys:
+                self.assertIn(key, resource)
+
+    @integration_test
     def test_https_can_apply_policy(self):
         self.setup_cli_params({
             **self.HTTPS_ENV_VARS,
